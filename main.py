@@ -47,7 +47,7 @@ def process_account(account: dict, model: str, args: argparse.Namespace) -> None
         uids_trash: list[str] = []
         to_classify = []
         for em in emails:
-            if is_trash(em["sender"], em["subject"]):
+            if is_trash(em["sender"], em["subject"], em.get("recipient", "")):
                 uids_trash.append(em["uid"])
                 print(f"[TRASH   ] {em['subject'][:60]!r}")
                 print(f"           From: {em['sender'][:60]}")

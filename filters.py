@@ -23,7 +23,7 @@ def _sender_domain(sender: str) -> str:
     return addr.split("@")[-1] if "@" in addr else ""
 
 
-def is_trash(sender: str, subject: str) -> bool:
+def is_trash(sender: str, subject: str, recipient: str = "") -> bool:
     """Return True if the email matches any always_trash rule."""
     rules = _load().get("always_trash", {})
     addr = _sender_address(sender)
@@ -36,5 +36,10 @@ def is_trash(sender: str, subject: str) -> bool:
         return True
     for kw in rules.get("subject_keywords", []):
         if kw.lower() in subject_lower:
+            return True
+    # Check To address — useful for catching spam sent to known throwaway addresses
+    if recipient:
+        recip_addr = _sender_address(recipient)
+        if recip_addr in [r.lower() for r in rules.get("recipients", [])]:
             return True
     return False

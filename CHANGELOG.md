@@ -4,6 +4,16 @@ All changes to this project are recorded here.
 
 ---
 
+## v0.0.4 — 2026-05-27
+
+### Added
+- `filters.json`: `recipients` rule type — trash emails sent **to** a specific address
+- `imap_client.py`: extract `To` header and include as `recipient` in email dict
+- `filters.py`: recipient matching logic added to `is_trash()`
+- `main.py`: passes `recipient` field through to filter check
+
+---
+
 ## v0.0.3 — 2026-05-27
 
 ### Added

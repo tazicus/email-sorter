@@ -83,6 +83,7 @@ class IMAPClient:
                     "uid": uid.decode() if isinstance(uid, bytes) else uid,
                     "subject": _decode_header_field(msg.get("Subject")),
                     "sender": _decode_header_field(msg.get("From")),
+                    "recipient": _decode_header_field(msg.get("To")),
                     "body": _extract_body(msg),
                 }
             )
