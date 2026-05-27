@@ -10,27 +10,23 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Sort unimportant emails into a separate folder.")
     parser.add_argument("--dry-run", action="store_true", help="Preview without moving any emails")
     parser.add_argument("--limit", type=int, default=50, metavar="N", help="Max emails to process (default: 50)")
-    parser.add_argument("--inbox", default=None, metavar="FOLDER", help="Override inbox folder name")
+    parser.add_argument("--inbox", default=None, metavar="FOLDER", help="Override inbox folder for all accounts")
     return parser.parse_args()
 
 
-def main() -> None:
-    args = parse_args()
-    config = load_config()
-
-    inbox = args.inbox or config["INBOX_FOLDER"]
-    sort_folder = config["SORT_FOLDER"]
-    model = config["MODEL"]
+def process_account(account: dict, model: str, args: argparse.Namespace) -> None:
+    inbox = args.inbox or account["inbox"]
+    sort_folder = account["sort_folder"]
 
     client = IMAPClient(
-        server=config["IMAP_SERVER"],
-        port=config["IMAP_PORT"],
-        email_address=config["EMAIL_ADDRESS"],
-        password=config["EMAIL_PASSWORD"],
+        server=account["server"],
+        port=account["port"],
+        email_address=account["email"],
+        password=account["password"],
     )
 
     try:
-        print(f"Connecting to {config['IMAP_SERVER']}...")
+        print(f"Connecting to {account['server']}...")
         client.connect()
 
         if not args.dry_run:
@@ -73,11 +69,23 @@ def main() -> None:
                 client.move_emails(uids_to_sort, destination=sort_folder, source=inbox)
                 print("Done.")
 
+    finally:
+        client.disconnect()
+
+
+def main() -> None:
+    args = parse_args()
+    config = load_config()
+
+    try:
+        for i, account in enumerate(config["accounts"], 1):
+            print(f"\n{'=' * 60}")
+            print(f"Account {i}: {account['email']}")
+            print(f"{'=' * 60}")
+            process_account(account, config["model"], args)
     except KeyboardInterrupt:
         print("\nInterrupted.")
         sys.exit(1)
-    finally:
-        client.disconnect()
 
 
 if __name__ == "__main__":
