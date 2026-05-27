@@ -62,7 +62,7 @@ class IMAPClient:
 
     def fetch_unread(self, folder: str = "INBOX", limit: int = 50) -> list[dict]:
         self._conn.select(folder, readonly=True)
-        status, data = self._conn.uid("SEARCH", None, "UNSEEN")
+        status, data = self._conn.uid("SEARCH", None, "ALL")
         if status != "OK" or not data or not data[0]:
             return []
         uids = data[0].split()

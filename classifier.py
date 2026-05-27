@@ -25,11 +25,18 @@ _SYSTEM_PROMPT = """You are an email importance classifier. Classify each email 
 Important: personal messages, work requiring action, financial transactions, legal/official documents, security alerts.
 Not important: marketing, newsletters, promotions, social media notifications, automated digests."""
 
-_client = anthropic.Anthropic()
+_client: anthropic.Anthropic | None = None
+
+
+def _get_client() -> anthropic.Anthropic:
+    global _client
+    if _client is None:
+        _client = anthropic.Anthropic()
+    return _client
 
 
 def classify_email(sender: str, subject: str, body: str, model: str = "claude-haiku-4-5") -> EmailClassification:
-    response = _client.messages.create(
+    response = _get_client().messages.create(
         model=model,
         max_tokens=128,
         system=[

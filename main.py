@@ -1,6 +1,8 @@
 import argparse
 import sys
 
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 from classifier import classify_email
 from config import load_config
 from imap_client import IMAPClient
@@ -17,6 +19,7 @@ def parse_args() -> argparse.Namespace:
 def process_account(account: dict, model: str, args: argparse.Namespace) -> None:
     inbox = args.inbox or account["inbox"]
     sort_folder = account["sort_folder"]
+    important_folder = account["important_folder"]
 
     client = IMAPClient(
         server=account["server"],
@@ -31,6 +34,7 @@ def process_account(account: dict, model: str, args: argparse.Namespace) -> None
 
         if not args.dry_run:
             client.ensure_folder(sort_folder)
+            client.ensure_folder(important_folder)
 
         print(f"Fetching up to {args.limit} unread emails from {inbox}...")
         emails = client.fetch_unread(folder=inbox, limit=args.limit)
@@ -39,8 +43,8 @@ def process_account(account: dict, model: str, args: argparse.Namespace) -> None
             return
 
         print(f"Classifying {len(emails)} emails...\n")
-        uids_to_sort: list[str] = []
-        kept = 0
+        uids_important: list[str] = []
+        uids_sort: list[str] = []
 
         for em in emails:
             result = classify_email(
@@ -49,24 +53,31 @@ def process_account(account: dict, model: str, args: argparse.Namespace) -> None
                 body=em["body"],
                 model=model,
             )
-            label = "KEEP  " if result.classification == "important" else "SORT  "
+            if result.classification == "important":
+                label = "IMPORTANT"
+                uids_important.append(em["uid"])
+            else:
+                label = "SORT     "
+                uids_sort.append(em["uid"])
             print(f"[{label}] {em['subject'][:60]!r}")
-            print(f"         From: {em['sender'][:60]}")
-            print(f"         Reason: {result.reason}\n")
+            print(f"           From: {em['sender'][:60]}")
+            print(f"           Reason: {result.reason}\n")
 
-            if result.classification == "not_important":
-                uids_to_sort.append(em["uid"])
-            else:
-                kept += 1
+        print(f"Summary: {len(uids_important)} important, {len(uids_sort)} to sort")
 
-        print(f"Summary: {kept} kept, {len(uids_to_sort)} to sort")
-
-        if uids_to_sort:
-            if args.dry_run:
-                print(f"[dry-run] Would move {len(uids_to_sort)} emails to '{sort_folder}'")
-            else:
-                print(f"Moving {len(uids_to_sort)} emails to '{sort_folder}'...")
-                client.move_emails(uids_to_sort, destination=sort_folder, source=inbox)
+        if args.dry_run:
+            if uids_important:
+                print(f"[dry-run] Would move {len(uids_important)} emails to '{important_folder}'")
+            if uids_sort:
+                print(f"[dry-run] Would move {len(uids_sort)} emails to '{sort_folder}'")
+        else:
+            if uids_important:
+                print(f"Moving {len(uids_important)} important emails to '{important_folder}'...")
+                client.move_emails(uids_important, destination=important_folder, source=inbox)
+            if uids_sort:
+                print(f"Moving {len(uids_sort)} emails to '{sort_folder}'...")
+                client.move_emails(uids_sort, destination=sort_folder, source=inbox)
+            if uids_important or uids_sort:
                 print("Done.")
 
     finally:

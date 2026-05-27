@@ -4,7 +4,7 @@ All changes to this project are recorded here.
 
 ---
 
-## 2026-05-27
+## v0.0.1 — 2026-05-27
 
 ### Added
 - `.env` created from `.env.example` with multi-account structure (numbered suffixes `_1`, `_2`)
@@ -25,3 +25,5 @@ All changes to this project are recorded here.
 ### Changed
 - `.env` — `SORT_FOLDER`, `IMPORTANT_FOLDER`, `INBOX_FOLDER` moved to shared section as defaults; account-level `SORT_FOLDER_1` etc. removed (now optional overrides)
 - `config.py` — folder variables now use fallback chain: account-specific (`SORT_FOLDER_1`) → shared (`SORT_FOLDER`) → hardcoded default; `important_folder` added to each account config
+- `main.py` — both classifications now trigger a move: important emails → `IMPORTANT_FOLDER`, unimportant → `SORT_FOLDER`; inbox is fully cleared of unread emails each run
+- `imap_client.py` — fetch scope changed from `UNSEEN` to `ALL` so both read and unread messages are processed
