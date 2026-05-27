@@ -4,6 +4,20 @@ All changes to this project are recorded here.
 
 ---
 
+## v0.0.3 — 2026-05-27
+
+### Added
+- `filters.json` — local (gitignored) ruleset for always-trash emails; rules: `senders`, `domains`, `subject_keywords`
+- `filters.py` — pre-filter module; checks each email against `filters.json` before sending to Claude
+- `TRASH_FOLDER` env var (shared + per-account override); defaults to `INBOX.Trash`
+- `main.py` — pre-filter runs before classification; matched emails go to `trash_folder`, saving API calls
+- `main.py` — account-level errors are caught and logged so one bad account doesn't stop the rest
+
+### Changed
+- Summary line now shows `trashed / important / to sort` counts
+
+---
+
 ## v0.0.2 — 2026-05-27
 
 ### Fixed
@@ -15,6 +29,9 @@ All changes to this project are recorded here.
 ### Changed
 - Both classifications now trigger a move: important → `IMPORTANT_FOLDER`, unimportant → `SORT_FOLDER`
 - `.env` / `.env.example` — folder names updated to use full `INBOX.` namespace prefix (`INBOX.aisorted`, `INBOX.ai-important`); renamed `important` → `ai-important` to avoid IMAP reserved name conflict
+- `.gitignore` — added `AUTOMATED_SETUP.md` (local reference doc, not for repo)
+- Added `AUTOMATED_SETUP.md` — local guide for scheduling daily runs via Task Scheduler or GitHub Actions
+- Removed `SETUP_INSTRUCTIONS.md` — no longer needed
 
 ---
 

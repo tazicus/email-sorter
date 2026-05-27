@@ -12,6 +12,7 @@ def load_config() -> dict:
     # Shared folder defaults — used when an account has no account-specific override
     shared_sort_folder = os.getenv("SORT_FOLDER", "Sorted")
     shared_important_folder = os.getenv("IMPORTANT_FOLDER", "Important")
+    shared_trash_folder = os.getenv("TRASH_FOLDER", "INBOX.Trash")
     shared_inbox_folder = os.getenv("INBOX_FOLDER", "INBOX")
 
     accounts = []
@@ -22,6 +23,10 @@ def load_config() -> dict:
             break
         email = os.getenv(f"EMAIL_ADDRESS_{i}")
         password = os.getenv(f"EMAIL_PASSWORD_{i}")
+        # Skip accounts that still have placeholder values
+        if email == "mailaddress" or password in ("your-password-here",):
+            i += 1
+            continue
         missing = [name for name, val in {
             f"EMAIL_ADDRESS_{i}": email,
             f"EMAIL_PASSWORD_{i}": password,
@@ -35,6 +40,7 @@ def load_config() -> dict:
             "password": password,
             "sort_folder": os.getenv(f"SORT_FOLDER_{i}") or shared_sort_folder,
             "important_folder": os.getenv(f"IMPORTANT_FOLDER_{i}") or shared_important_folder,
+            "trash_folder": os.getenv(f"TRASH_FOLDER_{i}") or shared_trash_folder,
             "inbox": os.getenv(f"INBOX_FOLDER_{i}") or shared_inbox_folder,
         })
         i += 1
