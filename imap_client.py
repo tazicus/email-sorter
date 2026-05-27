@@ -56,9 +56,13 @@ class IMAPClient:
     def ensure_folder(self, folder: str) -> None:
         status, folders = self._conn.list()
         existing = [f.decode() if isinstance(f, bytes) else f for f in (folders or [])]
-        folder_exists = any(f'"{folder}"' in entry or f" {folder}" in entry for entry in existing)
-        if not folder_exists:
-            self._conn.create(folder)
+        # Each LIST entry looks like: (\flags) "sep" folder_name
+        # Extract the folder name as the last whitespace-delimited token (strip quotes)
+        folder_names = {entry.rsplit(" ", 1)[-1].strip('"') for entry in existing if entry}
+        if folder not in folder_names:
+            status, data = self._conn.create(folder)
+            if status != "OK":
+                raise RuntimeError(f"Failed to create folder '{folder}': {data}")
 
     def fetch_unread(self, folder: str = "INBOX", limit: int = 50) -> list[dict]:
         self._conn.select(folder, readonly=True)

@@ -4,6 +4,20 @@ All changes to this project are recorded here.
 
 ---
 
+## v0.0.2 — 2026-05-27
+
+### Fixed
+- `imap_client.py` — fixed `ensure_folder` to parse full folder names from IMAP LIST response correctly; raises error if `CREATE` fails instead of silently continuing
+- `imap_client.py` — fetch scope changed from `UNSEEN` to `ALL` so both read and unread messages are processed
+- `classifier.py` — lazy-init Anthropic client so `load_dotenv()` runs before the client is created
+- `main.py` — force UTF-8 stdout to handle emoji in email subjects
+
+### Changed
+- Both classifications now trigger a move: important → `IMPORTANT_FOLDER`, unimportant → `SORT_FOLDER`
+- `.env` / `.env.example` — folder names updated to use full `INBOX.` namespace prefix (`INBOX.aisorted`, `INBOX.ai-important`); renamed `important` → `ai-important` to avoid IMAP reserved name conflict
+
+---
+
 ## v0.0.1 — 2026-05-27
 
 ### Added
@@ -27,3 +41,5 @@ All changes to this project are recorded here.
 - `config.py` — folder variables now use fallback chain: account-specific (`SORT_FOLDER_1`) → shared (`SORT_FOLDER`) → hardcoded default; `important_folder` added to each account config
 - `main.py` — both classifications now trigger a move: important emails → `IMPORTANT_FOLDER`, unimportant → `SORT_FOLDER`; inbox is fully cleared of unread emails each run
 - `imap_client.py` — fetch scope changed from `UNSEEN` to `ALL` so both read and unread messages are processed
+- `imap_client.py` — fixed `ensure_folder` to parse full folder names from IMAP LIST response correctly; now raises an error if `CREATE` fails instead of silently continuing
+- `.env` / `.env.example` — folder names updated to use full `INBOX.` namespace prefix required by these servers (`INBOX.aisorted`, `INBOX.ai-important`); `important` renamed to `ai-important` to avoid IMAP reserved name conflict
